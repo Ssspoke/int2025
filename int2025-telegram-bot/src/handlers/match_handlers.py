@@ -15,7 +15,6 @@ async def start_command(message: Message):
 MAX_MESSAGE_LENGTH = 4096
 
 def split_message(text, max_length=MAX_MESSAGE_LENGTH):
-    # Разбивает текст на части не длиннее max_length
     return [text[i:i+max_length] for i in range(0, len(text), max_length)]
 
 @router.message(Command("matches"))
@@ -25,8 +24,15 @@ async def matches_command(message: Message):
     if not matches:
         await message.answer("Не удалось получить данные о матчах. Попробуйте позже.")
         return
-    text = "Текущие матчи The International 2025:\n\n"
+
+    text = "📅 <b>Расписание матчей The International 2025:</b>\n\n"
     for match in matches:
-        text += f"{match['team1']} vs {match['team2']} | Время: {match['time']} | Статус: {match['status']}\n"
+        text += (
+            f"🎯 <b>{match['stage']}</b>\n"
+            f"🔹 {match['team1']} vs {match['team2']}\n"
+            f"🕒 {match['time']}\n"
+            f"📌 Статус: {match['status']}\n\n"
+        )
+
     for part in split_message(text):
-        await message.answer(part)
+        await message.answer(part, parse_mode="HTML")
