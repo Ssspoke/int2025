@@ -9,6 +9,7 @@ HEADERS = {
 }
 
 
+
 class LiquipediaParser:
     def fetch_matches(self, limit: int = 20):
         response = requests.get(URL, headers=HEADERS)
