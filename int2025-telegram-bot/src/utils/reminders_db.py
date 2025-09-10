@@ -56,5 +56,13 @@ def get_user_reminders(user_id: int) -> List[Tuple]:
     conn.close()
     return rows
 
+# Удалить все напоминания пользователя
+def clear_user_reminders(user_id: int):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('DELETE FROM reminders WHERE user_id = ?', (user_id,))
+    conn.commit()
+    conn.close()
+
 # Вызвать при старте бота для инициализации БД
 init_db()

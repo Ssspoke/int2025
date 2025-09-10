@@ -3,7 +3,7 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKe
 from aiogram.filters import Command
 from services.liquipedia_parser import LiquipediaParser
 from keyboards import matches_keyboard
-from utils.reminders_db import add_reminder, get_user_reminders
+from utils.reminders_db import add_reminder, get_user_reminders, clear_user_reminders
 
 router = Router()
 
@@ -55,7 +55,7 @@ async def notify_match(callback: CallbackQuery):
         await callback.answer("Ошибка при оформлении напоминания.")
 
 @router.message(Command("myreminders"))
-@router.message(F.text == "Мои подписки")
+@router.message(F.text == "🔔 Мои подписки")
 async def my_reminders(message: Message):
     user_id = message.from_user.id
     reminders = get_user_reminders(user_id)
@@ -67,3 +67,10 @@ async def my_reminders(message: Message):
         # r = (id, user_id, match_id, match_time)
         text += f"Матч №{r[2]} в {r[3]}\n"
     await message.answer(text, parse_mode="HTML")
+
+@router.message(Command("clearreminders"))
+@router.message(F.text == "Очистить подписки")
+async def clear_reminders(message: Message):
+    user_id = message.from_user.id
+    clear_user_reminders(user_id)
+    await message.answer("Все ваши подписки на матчи удалены.")

@@ -6,10 +6,12 @@ def main_menu():
     """
     Главное меню с кнопками для пользователя.
     Кнопка 'Мои подписки' отправляет команду /myreminders.
+    Кнопка 'Очистить подписки' отправляет команду /clearreminders.
     """
     keyboard = [
         [KeyboardButton(text="📅 Матчи TI2025")],
-        [KeyboardButton(text="Мои подписки", callback_data=None)],
+        [KeyboardButton(text="🔔 Мои подписки", callback_data=None)],
+        [KeyboardButton(text="Очистить подписки", callback_data=None)],
     ]
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
