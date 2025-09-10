@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import Command
 from services.liquipedia_parser import LiquipediaParser
-from keyboards import matches_navigation, match_actions
+from keyboards import matches_keyboard
 
 router = Router()
 
@@ -20,8 +20,9 @@ def split_message(text, max_length=MAX_MESSAGE_LENGTH):
 
 
 
+
 @router.message(Command("matches"))
-@router.message(F.text == "📅 Матчи TI2025")
+@router.message(F.text == "📅 Матчи TI2025")  # теперь доступно и из меню
 async def matches_command(message: Message):
     parser = LiquipediaParser()
     matches = parser.fetch_matches(limit=5)
@@ -30,23 +31,15 @@ async def matches_command(message: Message):
         return
 
     text = "🎯 <b>Ближайшие матчи The International 2025:</b>\n\n"
-    keyboard = []
-
     for i, match in enumerate(matches, start=1):
         text += (
             f"{i}. <b>{match['team1']} vs {match['team2']}</b>\n"
-            f"📌{match['time']}\n"
-            f"🕒{match['stage']}\n"
+            f" 🕒{match['time']}\n"
+            f" 📌{match['stage']}\n"
             f"📍 Статус: {match['status']}\n\n"
         )
-        keyboard.append(
-            [InlineKeyboardButton(text=f"🔔 Напомнить: {match['team1']} vs {match['team2']}",
-                                  callback_data=f"notify_{i}")]
-        )
 
-    markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
-
-    await message.answer(text, parse_mode="HTML", reply_markup=markup)
+    await message.answer(text, parse_mode="HTML", reply_markup=matches_keyboard(matches))
 
 
 @router.callback_query(F.data.startswith("notify_"))

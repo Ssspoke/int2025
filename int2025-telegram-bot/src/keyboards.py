@@ -1,22 +1,26 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
-def matches_navigation():
-    keyboard = [
-        [
-            InlineKeyboardButton(text="⬅️ Назад", callback_data="prev_matches"),
-            InlineKeyboardButton(text="➡️ Вперёд", callback_data="next_matches"),
+
+# Главное меню (видно всегда снизу)
+def main_menu():
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="📅 Матчи TI2025")],
+            [KeyboardButton(text="🔔 Мои подписки")],
+            [KeyboardButton(text="ℹ️ Помощь")],
         ],
-        [
-            InlineKeyboardButton(text="🔄 Обновить", callback_data="refresh_matches"),
-        ]
-    ]
-    return InlineKeyboardMarkup(inline_keyboard=keyboard)
-
-
-def match_actions(match_id: int):
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="🔔 Напомнить", callback_data=f"notify_{match_id}")]
-        ]
+        resize_keyboard=True
     )
 
+
+# Inline-кнопки для матчей
+def matches_keyboard(matches: list):
+    keyboard = []
+    for i, match in enumerate(matches, start=1):
+        keyboard.append([
+            InlineKeyboardButton(
+                text=f"🔔 Напомнить: {match['team1']} vs {match['team2']}",
+                callback_data=f"notify_{i}"
+            )
+        ])
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)

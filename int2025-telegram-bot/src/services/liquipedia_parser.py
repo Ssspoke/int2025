@@ -1,11 +1,11 @@
 import requests
-from bs4 import BeautifulSoup
-from datetime import datetime
+from bs4 import BeautifulSoup, Tag
+import re
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 URL = "https://liquipedia.net/dota2/The_International/2025/Main_Event"
 HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-
 
 class LiquipediaParser:
     def fetch_matches(self, limit: int = 20):
@@ -22,36 +22,38 @@ class LiquipediaParser:
                 if len(cols) < 3:
                     continue
 
-                stage = cols[0].get_text(strip=True)
-                time = cols[1].get_text(strip=True)
+                time_str = cols[0].get_text(strip=True)
+                # Получаем HTML ячейки времени
+                time_html = str(cols[0])
+                time_soup = BeautifulSoup(time_html, "html.parser")
+                spans = time_soup.find_all('span')
+                if spans:
+                    time_pretty = spans[-1].get_text(strip=True)
+                else:
+                    match = re.search(r'(\w+ \d{1,2}, \d{4} - \d{2}:\d{2}CEST)', time_str)
+                    if match:
+                        time_pretty = match.group(1)
+                    else:
+                        time_pretty = time_str[-20:] if len(time_str) > 20 else time_str
+                stage = cols[1].get_text(strip=True)
                 status = cols[-1].get_text(strip=True)
 
                 teams = [c.get_text(strip=True) for c in cols if "vs" not in c.get_text(strip=True).lower()]
-                teams = [t for t in teams if t and t not in [stage, time, status]]
+                teams = [t for t in teams if t and t not in [stage, time_str, status]]
 
                 if len(teams) >= 2:
                     team1, team2 = teams[0], teams[1]
                 else:
                     team1, team2 = "TBD", "TBD"
 
-                if not time:
+                if not time_str:
                     continue
-
-                # переводим время из CEST в MSK
-                try:
-                    match_time = datetime.strptime(time, "%Y-%m-%d %H:%M").replace(
-                        tzinfo=ZoneInfo("Europe/Berlin")
-                    )
-                    moscow_time = match_time.astimezone(ZoneInfo("Europe/Moscow"))
-                    time = moscow_time.strftime("%Y-%m-%d %H:%M MSK")
-                except Exception:
-                    pass
 
                 matches.append({
                     "stage": stage,
                     "team1": team1,
                     "team2": team2,
-                    "time": time,
+                    "time": time_pretty,
                     "status": status or "TBD"
                 })
 
