@@ -23,18 +23,19 @@ class LiquipediaParser:
                     continue
 
                 time_str = cols[0].get_text(strip=True)
-                # Получаем HTML ячейки времени
-                time_html = str(cols[0])
-                time_soup = BeautifulSoup(time_html, "html.parser")
-                spans = time_soup.find_all('span')
-                if spans:
-                    time_pretty = spans[-1].get_text(strip=True)
-                else:
-                    match = re.search(r'(\w+ \d{1,2}, \d{4} - \d{2}:\d{2}CEST)', time_str)
-                    if match:
-                        time_pretty = match.group(1)
+                # Проверяем, что cols[0] — это тег, и ищем красивое время в span
+                if isinstance(cols[0], Tag):
+                    spans = cols[0].find_all('span')
+                    if spans:
+                        time_pretty = spans[-1].get_text(strip=True)
                     else:
-                        time_pretty = time_str[-20:] if len(time_str) > 20 else time_str
+                        match = re.search(r'(\w+ \d{1,2}, \d{4} - \d{2}:\d{2}CEST)', time_str)
+                        if match:
+                            time_pretty = match.group(1)
+                        else:
+                            time_pretty = time_str[-20:] if len(time_str) > 20 else time_str
+                else:
+                    time_pretty = time_str[-20:] if len(time_str) > 20 else time_str
                 stage = cols[1].get_text(strip=True)
                 status = cols[-1].get_text(strip=True)
 

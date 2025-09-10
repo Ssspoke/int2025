@@ -3,6 +3,7 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKe
 from aiogram.filters import Command
 from services.liquipedia_parser import LiquipediaParser
 from keyboards import matches_keyboard
+from utils.reminders_db import add_reminder, get_user_reminders
 
 router = Router()
 
@@ -44,6 +45,25 @@ async def matches_command(message: Message):
 
 @router.callback_query(F.data.startswith("notify_"))
 async def notify_match(callback: CallbackQuery):
-    match_id = callback.data.split("_")[1]
-    # TODO: сохранять подписку в базу данных
-    await callback.answer(f"🔔 Подписка оформлена на матч №{match_id}!")
+    # Ожидаем callback.data в формате notify_{match_id}_{match_time}
+    try:
+        _, match_id, match_time = callback.data.split("_", 2)
+        user_id = callback.from_user.id
+        add_reminder(user_id, match_id, match_time)
+        await callback.answer(f"🔔 Напоминание оформлено на матч №{match_id}!")
+    except Exception as e:
+        await callback.answer("Ошибка при оформлении напоминания.")
+
+@router.message(Command("myreminders"))
+@router.message(F.text == "Мои подписки")
+async def my_reminders(message: Message):
+    user_id = message.from_user.id
+    reminders = get_user_reminders(user_id)
+    if not reminders:
+        await message.answer("У вас нет активных подписок на матчи.")
+        return
+    text = "<b>Ваши подписки на матчи:</b>\n\n"
+    for r in reminders:
+        # r = (id, user_id, match_id, match_time)
+        text += f"Матч №{r[2]} в {r[3]}\n"
+    await message.answer(text, parse_mode="HTML")
